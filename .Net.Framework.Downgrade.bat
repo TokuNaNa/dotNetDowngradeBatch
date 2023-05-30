@@ -1,199 +1,214 @@
 @echo off
-chcp 932
+chcp 65001
+@echo off
 
-rem ---------------------------------------
-rem .Net Framework 4.8 �_�E���O���[�h�o�b�`�t�@�C��
-rem Ver 0.01
-rem ---------------------------------------
+rem "---------------------------------------"
+rem ".Net Framework 4.8 ダウングレードバッチファイル"
+rem "Ver 0.02"
+rem "---------------------------------------"
 
-rem ---------------------------------------
-rem �������_�E���O���[�h���Ɏg�p����t�H���_��ݒ聦����
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "※※※ダウングレード元に使用するフォルダを設定※※※"
+rem "---------------------------------------"
 set dotNetFolder=C:\Windows.old\WINDOWS\Microsoft.NET
 
-rem ---------------------------------------
-rem 64bit��32bit�����`�F�b�N
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "64bitか32bitかをチェック CODE-01"
+rem "---------------------------------------"
 if not %PROCESSOR_ARCHITECTURE%==AMD64 (
-  echo Windows 32bit x86�ł͎��s�ł��܂���
-  echo �_�E���O���[�h�𒆎~���܂�
+  echo Windows 32bit x86では実行できません
+  echo ダウングレードを中止します CODE-01
   pause
   goto :eof
 )
 
-rem ---------------------------------------
-rem �Ǘ��Ҍ����`�F�b�N
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "管理者権限チェック CODE-02"
+rem "---------------------------------------"
 for /f "tokens=1 delims=," %%i in ('whoami /groups /FO CSV /NH') do (
   if "%%~i"=="BUILTIN\Administrators" set ADMIN=yes
   if "%%~i"=="Mandatory Label\High Mandatory Level" set ELEVATED=yes
 )
 
 if "%ADMIN%" neq "yes" (
-  echo �Ǘ��Ҍ����Ŏ��s���ĉ�����
-  echo �_�E���O���[�h�𒆎~���܂�
+  echo 管理者権限で実行して下さい。ダウングレードを中止します CODE-02
+  echo You may need to adjust admin and elevated checking depending on your language.
   pause
   goto :eof
 )
 if "%ELEVATED%" neq "yes" (
-  echo �Ǘ��Ҍ����Ŏ��s���ĉ�����
-  echo �_�E���O���[�h�𒆎~���܂�
+  echo 管理者権限で実行して下さい。ダウングレードを中止します CODE-02
+  echo You may need to adjust admin and elevated checking depending on your language.
   pause
   goto :eof
+)
+
+rem "---------------------------------------"
+rem "プロセスチェック CODE-03"
+rem "---------------------------------------"
+tasklist | find "WmiPrvSE.exe" > NUL
+if %ERRORLEVEL% == 0 (
+  echo "WmiPrvSE.exe"が起動中です。共有違反が発生しないよう強制終了します。 CODE-03
+  Taskkill /F /IM WmiPrvSE.exe
 )
 
 :Answer
 echo ---------------------------------------
-echo .Net Framework 4.8���_�E���O���[�h���܂��B
-echo ���̃v���O���������s�������蒼���ł��܂���B
-echo ���̃v���O�������������Ă����ɖ߂��܂���B
-echo �����N���Ă����͂��Ȃ��ɑ΂��Ĉ�؂̐ӔC�𕉂����˂܂��B
-echo �� From: %dotNetFolder%
-echo �� To:   %SystemRoot%\Microsoft.NET
+echo .Net Framework 4.8をダウングレードします。
+
+echo このプログラムが失敗したらやり直しできません。
+
+echo このプログラムが成功しても元に戻せません。
+
+echo 何が起きても私はあなたに対して一切の責任を負いかねます。
+
+echo ※ From: %dotNetFolder%
+echo ※ To:   %SystemRoot%\Microsoft.NET
 echo ---------------------------------------
-SET /P ANSWER="����ł��_�E���O���[�h���܂��� (Y/N)�H"
+SET /P ANSWER="それでもダウングレードしますか (Y/N)？"
 
 if /i {%ANSWER%}=={y} (goto :InstallStart)
 if /i {%ANSWER%}=={yes} (goto :InstallStart)
-echo �_�E���O���[�h�𒆎~���܂�
+echo ダウングレードを中止します
 goto :eof
 
-rem ---------------------------------------
-rem �_�E���O���[�h�J�n
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "ダウングレード開始"
+rem "---------------------------------------"
 :InstallStart
-echo ��.Net Framework 4.8 �_�E���O���[�h�J�n
+echo ●.Net Framework 4.8 ダウングレード開始
 echo.
 
-rem ---------------------------------------
-rem �J�����g�f�B���N�g�������̃t�@�C���̂���t�H���_�ɐݒ�
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "カレントディレクトリをこのファイルのあるフォルダに設定"
+rem "---------------------------------------"
 cd /d %~dp0
 
-rem ---------------------------------------
-rem �R�s�[���� Framework �����邩�ǂ������ׂ�
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "コピー元の Framework があるかどうか調べる CODE-11"
+rem "---------------------------------------"
 IF NOT EXIST %dotNetFolder%\Framework\v4.0.30319 (
-  echo �t�H���_ %dotNetFolder%\Framework\v4.0.30319 ������܂���
-  echo �_�E���O���[�h�𒆎~���܂�
+  echo フォルダ %dotNetFolder%\Framework\v4.0.30319 がありません
+  echo ダウングレードを中止します CODE-11
   pause
   goto :eof
 )
 
-rem ---------------------------------------
-rem �R�s�[���� Framework64 �����邩�ǂ������ׂ�
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "コピー元の Framework64 があるかどうか調べる CODE-12"
+rem "---------------------------------------"
 IF NOT EXIST %dotNetFolder%\Framework64\v4.0.30319 (
-  echo �t�H���_ %dotNetFolder%\Framework64\v4.0.30319 ������܂���
-  echo �_�E���O���[�h�𒆎~���܂�
+  echo フォルダ %dotNetFolder%\Framework64\v4.0.30319 がありません
+  echo ダウングレードを中止します CODE-12
   pause
   goto :eof
 )
 
-rem ---------------------------------------
-rem �R�s�[���� assembly �����邩�ǂ������ׂ�
-rem ---------------------------------------
+rem "---------------------------------------"
+rem "コピー元の assembly があるかどうか調べる CODE-13"
+rem "---------------------------------------"
 IF NOT EXIST %dotNetFolder%\assembly (
-  echo �t�H���_ %dotNetFolder%\assembly ������܂���
-  echo �_�E���O���[�h�𒆎~���܂�
+  echo フォルダ %dotNetFolder%\assembly がありません
+  echo ダウングレードを中止します CODE-13
   pause
   goto :eof
 )
 
-rem ---------------------------------------
-rem .Net Framework �� C:\Windows\Microsoft.NET\ �փR�s�[
-rem ---------------------------------------
-echo ��.Net Framework 4.8 �t�@�C���R�s�[������
+rem "---------------------------------------"
+rem ".Net Framework を C:\Windows\Microsoft.NET\ へコピー"
+rem "---------------------------------------"
+echo ●.Net Framework 4.8 ファイルコピー処理中
 
-rem ---------------------------------------
-rem OS���̃p�X���w��
+rem "---------------------------------------"
+rem "OS側のパスを指定"
 SET OSPath=%SystemRoot%\Microsoft.NET\Framework\v4.0.30319
 
-rem �R�s�[���̃p�X���w��
+rem "コピー元のパスを指定"
 SET CopyPath=%dotNetFolder%\Framework\v4.0.30319
 
-rem OS���ɂ��� clr.dll �̏��L���������ɐݒ�
+rem "OS側にある clr.dll の所有権を自分に設定"
 takeown /f "%OSPath%\*" /r
 echo.
 
-rem OS���ɂ��� clr.dll �̃t���A�N�Z�X���������ɐݒ�
+rem "OS側にある clr.dll のフルアクセス権を自分に設定"
 icacls "%OSPath%\*" /T /grant "%UserName%":F
 echo.
 
-rem clr.dll ��OS���֏㏑���R�s�[
+rem "clr.dll をOS側へ上書きコピー"
 xcopy /r /y /h /q "%CopyPath%" "%OSPath%"
 echo.
 if errorlevel 1 goto :Error
 
-rem clr.dll �̏��L���� TrustedInstaller �ɐݒ�
+rem "clr.dll の所有権を TrustedInstaller に設定"
 icacls "%OSPath%\*" /T /setowner "NT Service\TrustedInstaller"
 echo.
 
-rem clr.dll �̃A�N�Z�X�����玩�����폜
+rem "clr.dll のアクセス権から自分を削除"
 icacls "%OSPath%\*" /T /remove "%UserName%"
 echo.
 
-rem ---------------------------------------
-rem OS���̃p�X���w��
+rem "---------------------------------------"
+rem "OS側のパスを指定"
 SET OSPath=%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319
 
-rem �R�s�[���̃p�X���w��
+rem "コピー元のパスを指定"
 SET CopyPath=%dotNetFolder%\Framework64\v4.0.30319
 
-rem OS���ɂ��� clr.dll �̏��L���������ɐݒ�
+rem "OS側にある clr.dll の所有権を自分に設定"
 takeown /f "%OSPath%\*" /r
 echo.
 
-rem OS���ɂ��� clr.dll �̃t���A�N�Z�X���������ɐݒ�
+rem "OS側にある clr.dll のフルアクセス権を自分に設定"
 icacls "%OSPath%\*" /T /grant "%UserName%":F
 echo.
 
-rem clr.dll ��OS���֏㏑���R�s�[
+rem "clr.dll をOS側へ上書きコピー"
 xcopy /r /y /h /q "%CopyPath%" "%OSPath%"
 echo.
 if errorlevel 1 goto :Error
 
-rem clr.dll �̏��L���� TrustedInstaller �ɐݒ�
+rem "clr.dll の所有権を TrustedInstaller に設定"
 icacls "%OSPath%\*" /T /setowner "NT Service\TrustedInstaller"
 echo.
 
-rem clr.dll �̃A�N�Z�X�����玩�����폜
+rem "clr.dll のアクセス権から自分を削除"
 icacls "%OSPath%\*" /T /remove "%UserName%"
 echo.
 
-rem ---------------------------------------
-rem OS���̃p�X���w��
+rem "---------------------------------------"
+rem "OS側のパスを指定"
 SET OSPath=%SystemRoot%\Microsoft.NET\assembly
 
-rem �R�s�[���̃p�X���w��
+rem "コピー元のパスを指定"
 SET CopyPath=%dotNetFolder%\assembly
 
-rem OS���ɂ��� clr.dll �̏��L���������ɐݒ�
+rem "OS側にある clr.dll の所有権を自分に設定"
 takeown /f "%OSPath%\*" /r
 echo.
 
-rem OS���ɂ��� clr.dll �̃t���A�N�Z�X���������ɐݒ�
+rem "OS側にある clr.dll のフルアクセス権を自分に設定"
 icacls "%OSPath%\*" /T /grant "%UserName%":F
 echo.
 
-rem clr.dll ��OS���֏㏑���R�s�[
+rem "clr.dll をOS側へ上書きコピー"
 xcopy /r /y /h /q "%CopyPath%" "%OSPath%"
 echo.
 if errorlevel 1 goto :Error
 
-rem clr.dll �̏��L���� TrustedInstaller �ɐݒ�
+rem "clr.dll の所有権を TrustedInstaller に設定"
 icacls "%OSPath%\*" /T /setowner "NT Service\TrustedInstaller"
 echo.
 
-rem clr.dll �̃A�N�Z�X�����玩�����폜
+rem "clr.dll のアクセス権から自分を削除"
 icacls "%OSPath%\*" /T /remove "%UserName%"
 echo.
 
-rem ---------------------------------------
-echo ���_�E���O���[�h������Ɋ������܂���
+rem "---------------------------------------"
+echo ●ダウングレードが正常に完了しました
+pause
 goto :eof
 
 :Error
-echo ���G���[���������܂����A�_�E���O���[�h�𒆎~���܂�
+echo ●エラーが発生しました、ダウングレードを中止します
 pause
 goto :eof
